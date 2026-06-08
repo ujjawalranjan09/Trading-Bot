@@ -20,11 +20,11 @@ def validate_side(side: str) -> str:
 
 def validate_order_type(order_type: str) -> str:
     """
-    Validate that order type is MARKET, LIMIT, or STOP_MARKET.
+    Validate that order type is MARKET, LIMIT, STOP_MARKET, or STOP_LIMIT.
     """
     order_type = order_type.upper()
-    if order_type not in ["MARKET", "LIMIT", "STOP_MARKET"]:
-        raise ValueError(f"Invalid order type '{order_type}'. Must be 'MARKET', 'LIMIT', or 'STOP_MARKET'.")
+    if order_type not in ["MARKET", "LIMIT", "STOP_MARKET", "STOP_LIMIT"]:
+        raise ValueError(f"Invalid order type '{order_type}'. Must be 'MARKET', 'LIMIT', 'STOP_MARKET', or 'STOP_LIMIT'.")
     return order_type
 
 def validate_quantity(quantity: str | float, min_qty: float = 0.001) -> float:
@@ -42,11 +42,11 @@ def validate_quantity(quantity: str | float, min_qty: float = 0.001) -> float:
 
 def validate_price(price: str | float | None, order_type: str) -> float | None:
     """
-    Validate that LIMIT orders have a valid price.
+    Validate that LIMIT and STOP_LIMIT orders have a valid price.
     """
-    if order_type == "LIMIT":
+    if order_type in ("LIMIT", "STOP_LIMIT"):
         if price is None:
-            raise ValueError("LIMIT orders require a price.")
+            raise ValueError(f"{order_type} orders require a price.")
         try:
             p = float(price)
             if p <= 0:
@@ -58,11 +58,11 @@ def validate_price(price: str | float | None, order_type: str) -> float | None:
 
 def validate_stop_price(stop_price: str | float | None, order_type: str) -> float | None:
     """
-    Validate that STOP_MARKET orders have a valid stop_price.
+    Validate that STOP_MARKET and STOP_LIMIT orders have a valid stop_price.
     """
-    if order_type == "STOP_MARKET":
+    if order_type in ("STOP_MARKET", "STOP_LIMIT"):
         if stop_price is None:
-            raise ValueError("STOP_MARKET orders require a stop_price.")
+            raise ValueError(f"{order_type} orders require a stop_price.")
         try:
             sp = float(stop_price)
             if sp <= 0:

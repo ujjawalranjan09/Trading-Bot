@@ -107,6 +107,29 @@ def place_stop_market_order(client, symbol: str, side: str, quantity: float, sto
         logger.error(f"Failed to place STOP_MARKET order: {str(e)}")
         raise
 
+def place_stop_limit_order(client, symbol: str, side: str, quantity: float, price: float, stop_price: float) -> OrderResult:
+    """
+    Places a STOP_LIMIT order.
+    """
+    params = {
+        "symbol": symbol,
+        "side": side,
+        "type": "STOP_LIMIT",
+        "timeInForce": "GTC",
+        "quantity": format_decimal(quantity),
+        "price": format_decimal(price),
+        "stopPrice": format_decimal(stop_price)
+    }
+    logger.info(f"Placing STOP_LIMIT order: {params}")
+    try:
+        response = client.new_order(**params)
+        result = _parse_order_response(response)
+        logger.info(f"STOP_LIMIT order successful: OrderID {result.order_id}")
+        return result
+    except Exception as e:
+        logger.error(f"Failed to place STOP_LIMIT order: {str(e)}")
+        raise
+
 def place_order(client, order_type: str, symbol: str, side: str, quantity: float, price: float | None = None, stop_price: float | None = None) -> OrderResult:
     """
     Routes the order request to the correct order placement function based on order_type.
@@ -121,5 +144,11 @@ def place_order(client, order_type: str, symbol: str, side: str, quantity: float
         if stop_price is None:
             raise ValueError("STOP_MARKET order requires 'stop_price'")
         return place_stop_market_order(client, symbol, side, quantity, stop_price)
+    elif order_type == "STOP_LIMIT":
+        if price is None:
+            raise ValueError("STOP_LIMIT order requires 'price'")
+        if stop_price is None:
+            raise ValueError("STOP_LIMIT order requires 'stop_price'")
+        return place_stop_limit_order(client, symbol, side, quantity, price, stop_price)
     else:
         raise ValueError(f"Unsupported order type: {order_type}")
